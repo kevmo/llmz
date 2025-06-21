@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.17.6
+    container_name: elasticsearch-8.17.6
+    environment:
+      # Run as a single-node cluster (no cluster discovery needed for local development)
+      - discovery.type=single-node
+      # Disable X-Pack security features for easier local access (no authentication required)
+      - xpack.security.enabled=false
+      # Set JVM heap size to 512MB min/max to prevent memory issues on local machines
+      # Default is 50% of system RAM which can be too much for development
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      # 9200: REST API endpoint for HTTP requests (what we'll use with curl)
+      - "9200:9200"
+      # 9300: Node-to-node communication port (used when forming clusters)
+      # Exposed here in case you want to connect other ES nodes later
+      - "9300:9300"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    # Health check ensures Elasticsearch is fully started before dependent services
+    # Polls the cluster health endpoint every 10 seconds
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s localhost:9200 >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  elasticsearch-data:
+    # Uses Docker's default local storage driver to persist data between container restarts
+    # Data will be stored in Docker's volume directory on the host machine
+    driver: local
