@@ -28,3 +28,5 @@ To stop the Qdrant container:
 docker ps  # Find the container ID
 docker stop <container_id>
 ```
+
+
